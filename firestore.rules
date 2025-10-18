@@ -1,0 +1,190 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ========================================================================
+    // HELPER FUNCTIONS
+    // ========================================================================
+    
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Get user role from custom claims
+    function getUserRole() {
+      return request.auth.token.role;
+    }
+    
+    // Check if user is admin
+    function isAdmin() {
+      return isAuthenticated() && getUserRole() == 'admin';
+    }
+    
+    // Check if user is manager or above
+    function isManagerOrAbove() {
+      return isAuthenticated() && (getUserRole() == 'admin' || getUserRole() == 'manager');
+    }
+    
+    // Check if user owns the resource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // ========================================================================
+    // USERS COLLECTION
+    // ========================================================================
+    
+    match /users/{userId} {
+      // Users can read their own data
+      // Admins and managers can read all users
+      allow read: if isOwner(userId) || isManagerOrAbove();
+      
+      // Users can create their own document on signup
+      allow create: if isOwner(userId) && 
+                      request.resource.data.role == 'user' &&
+                      request.resource.data.totalPoints == 0;
+      
+      // Users can update their own profile (except role and points)
+      allow update: if isOwner(userId) && 
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'totalPoints', 'redeemedPoints']);
+      
+      // Only admins can update user roles
+      allow update: if isAdmin();
+      
+      // No one can delete users
+      allow delete: if false;
+    }
+    
+    // ========================================================================
+    // PRODUCTS COLLECTION
+    // ========================================================================
+    
+    match /products/{productId} {
+      // Everyone can read active products
+      // Admins and managers can read all products
+      allow read: if resource.data.isActive == true || isManagerOrAbove();
+      
+      // Only managers and admins can create products
+      allow create: if isManagerOrAbove() &&
+                      request.resource.data.keys().hasAll(['title', 'description', 'price', 'stockQty', 'categoryId', 'isActive', 'createdAt']) &&
+                      request.resource.data.price > 0 &&
+                      request.resource.data.stockQty >= 0;
+      
+      // Only managers and admins can update products
+      allow update: if isManagerOrAbove();
+      
+      // Only admins can delete products
+      allow delete: if isAdmin();
+    }
+    
+    // ========================================================================
+    // CATEGORIES COLLECTION
+    // ========================================================================
+    
+    match /categories/{categoryId} {
+      // Everyone can read active categories
+      // Admins and managers can read all categories
+      allow read: if resource.data.isActive == true || isManagerOrAbove();
+      
+      // Only managers and admins can create categories
+      allow create: if isManagerOrAbove() &&
+                      request.resource.data.keys().hasAll(['name', 'order', 'isActive', 'createdAt']);
+      
+      // Only managers and admins can update categories
+      allow update: if isManagerOrAbove();
+      
+      // Only admins can delete categories
+      allow delete: if isAdmin();
+    }
+    
+    // ========================================================================
+    // ORDERS COLLECTION
+    // ========================================================================
+    
+    match /orders/{orderId} {
+      // Users can read their own orders
+      // Admins and managers can read all orders
+      allow read: if isOwner(resource.data.uid) || isManagerOrAbove();
+      
+      // Users can create their own orders
+      allow create: if isAuthenticated() &&
+                      request.resource.data.uid == request.auth.uid &&
+                      request.resource.data.status == 'pending';
+      
+      // Users can update their own pending orders
+      allow update: if isOwner(resource.data.uid) && 
+                      resource.data.status == 'pending';
+      
+      // Managers and admins can update any order
+      allow update: if isManagerOrAbove();
+      
+      // No one can delete orders
+      allow delete: if false;
+    }
+    
+    // ========================================================================
+    // REDEMPTIONS COLLECTION
+    // ========================================================================
+    
+    match /redemptions/{redemptionId} {
+      // Users can read their own redemptions
+      // Admins and managers can read all redemptions
+      allow read: if isOwner(resource.data.uid) || isManagerOrAbove();
+      
+      // Users can create their own redemption requests
+      allow create: if isAuthenticated() &&
+                      request.resource.data.uid == request.auth.uid &&
+                      request.resource.data.status == 'pending' &&
+                      request.resource.data.points > 0;
+      
+      // Only managers and admins can update redemption status
+      allow update: if isManagerOrAbove() &&
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'note', 'reviewerId', 'updatedAt']);
+      
+      // No one can delete redemptions
+      allow delete: if false;
+    }
+    
+    // ========================================================================
+    // STATS COLLECTION
+    // ========================================================================
+    
+    match /stats/{statsId} {
+      // Only admins and managers can read stats
+      allow read: if isManagerOrAbove();
+      
+      // Only server (Cloud Functions) can write stats
+      allow write: if false;
+    }
+    
+    // ========================================================================
+    // NOTIFICATIONS COLLECTION
+    // ========================================================================
+    
+    match /notifications/{notificationId} {
+      // Users can read their own notifications
+      // Admins and managers can read all notifications
+      allow read: if isOwner(resource.data.uid) || isManagerOrAbove();
+      
+      // Only admins and managers can create notifications
+      allow create: if isManagerOrAbove();
+      
+      // Users can update their own notifications (mark as read)
+      allow update: if isOwner(resource.data.uid);
+      
+      // Only admins can delete notifications
+      allow delete: if isAdmin();
+    }
+    
+    // ========================================================================
+    // DEFAULT DENY
+    // ========================================================================
+    
+    // Deny access to any other collections not explicitly defined
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

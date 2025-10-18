@@ -1,0 +1,26 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Flutter: Clean & Get",
+            "type": "shell",
+            "command": "flutter clean && flutter pub get",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Gradle: assembleDebug (stacktrace)",
+            "type": "shell",
+            "command": "cd android && .\\gradlew assembleDebug --stacktrace --info --no-daemon",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Flutter: Build APK (verbose)",
+            "type": "shell",
+            "command": "flutter build apk -v",
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}

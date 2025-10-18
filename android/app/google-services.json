@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "317934472219",
+    "project_id": "admin-panel-app-574a7",
+    "storage_bucket": "admin-panel-app-574a7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:317934472219:android:fa8e696c84160a55433cbe",
+        "android_client_info": {
+          "package_name": "com.rationpoint.admin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMfb9-0PCcGnK7lSAs0nJs0XFcxeu92Mw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:317934472219:android:d939b5bc4d29985b433cbe",
+        "android_client_info": {
+          "package_name": "com.rationpoint.adminpanel"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMfb9-0PCcGnK7lSAs0nJs0XFcxeu92Mw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
