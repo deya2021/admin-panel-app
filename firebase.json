@@ -1,22 +1,25 @@
 {
+  "functions": {
+    "source": "functions",
+    "ignore": [
+      "node_modules",
+      ".git",
+      "firebase-debug.log",
+      "firebase-debug.*.log"
+    ]
+  },
+  "firestore": {
+    "rules": "config/firestore.rules"
+  },
+  "emulators": {
     "functions": {
-        "source": "functions"
+      "port": 5001
     },
     "firestore": {
-        "rules": "firestore.rules"
+      "port": 8080
     },
-    "storage": {
-        "rules": "storage.rules"
-    },
-    "emulators": {
-        "functions": {
-            "port": 5001
-        },
-        "firestore": {
-            "port": 8080
-        },
-        "ui": {
-            "enabled": true
-        }
+    "ui": {
+      "enabled": true
     }
+  }
 }

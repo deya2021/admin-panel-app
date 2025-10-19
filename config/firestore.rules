@@ -1,0 +1,27 @@
+// This ruleset replaces any previous rules.
+// Merge other collections BEFORE deploy. Claims: request.auth.token.role ∈ {admin, manager, user}
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null && request.auth.token.role == 'admin';
+    }
+    function isManagerOrAdmin() {
+      return request.auth != null &&
+             (request.auth.token.role == 'admin' || request.auth.token.role == 'manager');
+    }
+
+    match /users/{userId} {
+      allow read, write: if isAdmin();
+    }
+    match /content/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isManagerOrAdmin();
+    }
+    match /stats/{doc} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+  }
+}
