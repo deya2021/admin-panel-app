@@ -1,70 +1,34 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../auth/providers/auth_providers.dart';
-import '../models/points_ledger_entry.dart';
 
-/// Provider for Firestore instance
-final _firestoreProvider = Provider<FirebaseFirestore>((ref) {
-  return FirebaseFirestore.instance;
-});
+class UserPoints {
+  final int total;
+  final int redeemed;
+  int get remaining => total - redeemed;
 
-/// Provider for current user's total points
-final userTotalPointsProvider = StreamProvider<int>((ref) {
-  final userId = ref.watch(currentUserIdProvider);
-  if (userId == null) {
-    return Stream.value(0);
+  const UserPoints({required this.total, required this.redeemed});
+
+  factory UserPoints.fromMap(Map<String, dynamic>? data) {
+    final t = (data?['totalPoints'] ?? 0) as num;
+    final r = (data?['redeemedPoints'] ?? 0) as num;
+    return UserPoints(total: t.toInt(), redeemed: r.toInt());
   }
+}
 
-  final firestore = ref.watch(_firestoreProvider);
-  return firestore.collection('users').doc(userId).snapshots().map((snapshot) {
-    if (!snapshot.exists || snapshot.data() == null) {
-      return 0;
-    }
-    final data = snapshot.data()!;
-    return (data['totalPoints'] as num?)?.toInt() ?? 0;
-  });
+final currentUserProvider = Provider<User?>((ref) {
+  return FirebaseAuth.instance.currentUser;
 });
 
-/// Provider for current user's points ledger (last 50 entries)
-final userPointsLedgerProvider = StreamProvider<List<PointsLedgerEntry>>((ref) {
-  final userId = ref.watch(currentUserIdProvider);
-  if (userId == null) {
-    return Stream.value([]);
-  }
-
-  final firestore = ref.watch(_firestoreProvider);
-  return firestore
-      .collection('users')
-      .doc(userId)
-      .collection('points_ledger')
-      .orderBy('createdAt', descending: true)
-      .limit(50)
-      .snapshots()
-      .map((snapshot) {
-    return snapshot.docs
-        .map((doc) => PointsLedgerEntry.fromMap(doc.data(), doc.id))
-        .toList();
-  });
+final userDocRefProvider =
+    Provider<DocumentReference<Map<String, dynamic>>?>((ref) {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return null;
+  return FirebaseFirestore.instance.collection('users').doc(user.uid);
 });
 
-/// Provider to submit redemption request
-final submitRedemptionProvider = Provider<Future<void> Function(int points, String description)>((ref) {
-  return (int points, String description) async {
-    final userId = ref.read(currentUserIdProvider);
-    if (userId == null) {
-      throw Exception('User not authenticated');
-    }
-
-    final firestore = ref.read(_firestoreProvider);
-
-    // Create redemption request
-    await firestore.collection('redemptions').add({
-      'userId': userId,
-      'points': points,
-      'description': description,
-      'status': 'pending',
-      'createdAt': FieldValue.serverTimestamp(),
-    });
-  };
+final userPointsStreamProvider = StreamProvider<UserPoints?>((ref) {
+  final docRef = ref.watch(userDocRefProvider);
+  if (docRef == null) return const Stream.empty();
+  return docRef.snapshots().map((snap) => UserPoints.fromMap(snap.data()));
 });
-

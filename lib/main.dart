@@ -55,15 +55,15 @@ void main() {
 
     await _initFirebaseOnce();
 
-    runApp(const ProviderScope(child: AdminPanelApp()));
+    runApp(const ProviderScope(child: MyApp()));
   }, (error, stack) {
     // لوج أخطاء عامة (يمكن ربط Crashlytics لاحقًا)
     // debugPrint('Uncaught error: $error');
   });
 }
 
-class AdminPanelApp extends ConsumerWidget {
-  const AdminPanelApp({super.key});
+class MyApp extends ConsumerWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -96,8 +96,10 @@ class AdminPanelApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
 
-      // 🔀 الراوتر
-      routerConfig: router,
+      // 🔀 الراوتر - إصلاح المشكلة هنا
+      routeInformationParser: router.routeInformationParser,
+      routerDelegate: router.routerDelegate,
+      routeInformationProvider: router.routeInformationProvider,
 
       // (اختياري) فرض اتجاه RTL دائمًا لحالات خاصة
       builder: (context, child) => Directionality(

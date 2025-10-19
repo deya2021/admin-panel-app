@@ -1,9 +1,10 @@
+import 'package:admin_panel_app/core/widgets/error_view.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../../core/widgets/loading_indicator.dart';
-import '../../../core/widgets/error_view.dart';
+import 'package:admin_panel_app/features/points/widgets/points_summary_card.dart';
 import '../providers/dashboard_providers.dart';
 import '../widgets/stat_card_widget.dart';
 import '../models/order_model.dart';
@@ -15,7 +16,7 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('لوحة التحكم'),
@@ -69,8 +70,12 @@ class _DashboardContent extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Stats Cards - مع معالجة أفضل للحالات
+          // Stats Cards - مع معالجة أفضل للحالات
           _buildStatsSection(statsAsync, ref),
-          
+
+          // ← بطاقة النقاط
+          const SizedBox(height: 16),
+          const PointsSummaryCard(),
           const SizedBox(height: 24),
 
           // Orders Chart - مع معالجة أفضل للحالات
@@ -87,11 +92,10 @@ class _DashboardContent extends ConsumerWidget {
         Text(
           'الإحصائيات',
           style: Theme.of(ref.context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 16),
-        
         statsAsync.when(
           data: (stats) => GridView.count(
             crossAxisCount: 2,
@@ -138,7 +142,8 @@ class _DashboardContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildOrdersSection(AsyncValue ordersAsync, ThemeData theme, WidgetRef ref) {
+  Widget _buildOrdersSection(
+      AsyncValue ordersAsync, ThemeData theme, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -149,7 +154,6 @@ class _DashboardContent extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 16),
-
         ordersAsync.when(
           data: (orders) => _buildOrdersChart(ref.context, orders),
           loading: () => const _ChartLoading(),
@@ -207,7 +211,8 @@ class _DashboardContent extends ConsumerWidget {
     final now = DateTime.now();
     final List<FlSpot> spots = [];
     for (int i = 6; i >= 0; i--) {
-      final date = DateTime(now.year, now.month, now.day).subtract(Duration(days: i));
+      final date =
+          DateTime(now.year, now.month, now.day).subtract(Duration(days: i));
       final total = dailyTotals[date] ?? 0;
       spots.add(FlSpot(6 - i.toDouble(), total));
     }
@@ -249,8 +254,10 @@ class _DashboardContent extends ConsumerWidget {
                     },
                   ),
                 ),
-                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles:
+                    AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles:
+                    AxisTitles(sideTitles: SideTitles(showTitles: false)),
               ),
               borderData: FlBorderData(show: true),
               lineBarsData: [
