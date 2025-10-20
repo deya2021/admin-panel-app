@@ -1,13 +1,49 @@
-﻿# Build artifacts
-build/
-functions/lib/
-android/.gradle/
-android/app/build/
-
-# Node
-node_modules/
-functions/node_modules/
-
-# Secrets
-serviceAccountKey.json
+﻿# ---- Flutter / Dart
 .dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+.melos_tool/
+build/
+pubspec.lock
+.pub-cache/
+.pub/
+coverage/
+
+# ---- Android
+android/.gradle/
+android/.idea/
+android/local.properties
+android/*.iml
+android/app/build/
+*.iml
+
+# ---- iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/ServiceDefinitions.json
+ios/Runner/GeneratedPluginRegistrant.*
+
+# ---- Firebase Functions (TypeScript)
+functions/node_modules/
+functions/lib/
+functions/.firebase/
+functions/.env
+functions/.env.*
+functions/.runtimeconfig.json
+
+# ---- Node (root)
+node_modules/
+
+# ---- Secrets / Misc
+serviceAccountKey.json
+.DS_Store
+Thumbs.db
+*.log
+
+# ---- Android Studio packaged builds
+/android/app/debug
+/android/app/profile
+/android/app/release
