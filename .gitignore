@@ -1,24 +1,12 @@
-@"
-# Flutter / Dart
-.dart_tool/
-.packages
-.melos_tool/
-pubspec.lock
-
-# Build outputs
+﻿# Build artifacts
 build/
+functions/lib/
 android/.gradle/
-android/build/
 android/app/build/
-ios/Pods/
-macos/Flutter/ephemeral/
-linux/flutter/ephemeral/
-windows/flutter/ephemeral/
 
-# Firebase Functions / Node
+# Node
+node_modules/
 functions/node_modules/
-functions/.env
 
 # Secrets
 serviceAccountKey.json
-"@ | Out-File -Encoding UTF8 .gitignore
