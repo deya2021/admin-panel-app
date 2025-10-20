@@ -21,7 +21,7 @@ Thumbs.db
 firebase-debug.log
 firebase-debug.*.log
 .firebaserc.bak
-
+serviceAccountKey.json
 # Node (root)
 node_modules/
 
