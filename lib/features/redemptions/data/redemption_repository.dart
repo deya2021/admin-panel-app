@@ -1,14 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import '../models/redemption_model.dart';
 
 /// Repository for redemption management operations
 class RedemptionRepository {
   final FirebaseFirestore _firestore;
+  final FirebaseFunctions _functions;
   final String _collection = 'redemptions';
 
   RedemptionRepository({
     FirebaseFirestore? firestore,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance;
+    FirebaseFunctions? functions,
+  }) : _firestore = firestore ?? FirebaseFirestore.instance,
+       _functions = functions ?? FirebaseFunctions.instance;
 
   /// Get stream of all redemptions ordered by createdAt desc
   Stream<List<RedemptionModel>> getRedemptionsStream() {
@@ -46,27 +50,35 @@ class RedemptionRepository {
     }
   }
 
-  /// Approve redemption
+  /// Approve redemption using Cloud Function
   Future<void> approveRedemption(String redemptionId, String handledBy) async {
     try {
-      await _firestore.collection(_collection).doc(redemptionId).update({
-        'status': 'approved',
-        'handledBy': handledBy,
-        'handledAt': FieldValue.serverTimestamp(),
+      final callable = _functions.httpsCallable('processRedemption');
+      final result = await callable.call<Map<String, dynamic>>({
+        'redemptionId': redemptionId,
+        'action': 'approve',
       });
+      
+      if (result.data['success'] != true) {
+        throw Exception(result.data['message'] ?? 'Failed to approve redemption');
+      }
     } catch (e) {
       throw Exception('Failed to approve redemption: $e');
     }
   }
 
-  /// Reject redemption
+  /// Reject redemption using Cloud Function
   Future<void> rejectRedemption(String redemptionId, String handledBy) async {
     try {
-      await _firestore.collection(_collection).doc(redemptionId).update({
-        'status': 'rejected',
-        'handledBy': handledBy,
-        'handledAt': FieldValue.serverTimestamp(),
+      final callable = _functions.httpsCallable('processRedemption');
+      final result = await callable.call<Map<String, dynamic>>({
+        'redemptionId': redemptionId,
+        'action': 'reject',
       });
+      
+      if (result.data['success'] != true) {
+        throw Exception(result.data['message'] ?? 'Failed to reject redemption');
+      }
     } catch (e) {
       throw Exception('Failed to reject redemption: $e');
     }

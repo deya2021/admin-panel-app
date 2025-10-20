@@ -10,6 +10,7 @@ class UserModel {
   final String? photoUrl;
   final UserRole role;
   final bool isActive;
+  final int totalPoints;
   final DateTime createdAt;
   final DateTime? lastLoginAt;
   final Map<String, dynamic>? metadata;
@@ -22,6 +23,7 @@ class UserModel {
     this.photoUrl,
     required this.role,
     this.isActive = true,
+    this.totalPoints = 0,
     required this.createdAt,
     this.lastLoginAt,
     this.metadata,
@@ -37,6 +39,7 @@ class UserModel {
       photoUrl: map['photoUrl'] as String?,
       role: UserRole.fromString(map['role'] as String? ?? 'user'),
       isActive: map['isActive'] as bool? ?? true,
+      totalPoints: map['totalPoints'] as int? ?? 0,
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       lastLoginAt: (map['lastLoginAt'] as Timestamp?)?.toDate(),
       metadata: map['metadata'] as Map<String, dynamic>?,
@@ -52,6 +55,7 @@ class UserModel {
       'photoUrl': photoUrl,
       'role': role.value,
       'isActive': isActive,
+      'totalPoints': totalPoints,
       'createdAt': Timestamp.fromDate(createdAt),
       'lastLoginAt': lastLoginAt != null ? Timestamp.fromDate(lastLoginAt!) : null,
       'metadata': metadata,
@@ -67,6 +71,7 @@ class UserModel {
     String? photoUrl,
     UserRole? role,
     bool? isActive,
+    int? totalPoints,
     DateTime? createdAt,
     DateTime? lastLoginAt,
     Map<String, dynamic>? metadata,
@@ -79,6 +84,7 @@ class UserModel {
       photoUrl: photoUrl ?? this.photoUrl,
       role: role ?? this.role,
       isActive: isActive ?? this.isActive,
+      totalPoints: totalPoints ?? this.totalPoints,
       createdAt: createdAt ?? this.createdAt,
       lastLoginAt: lastLoginAt ?? this.lastLoginAt,
       metadata: metadata ?? this.metadata,

@@ -7,6 +7,7 @@ import '../../../core/widgets/empty_view.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../providers/redemption_providers.dart';
 import '../models/redemption_model.dart';
+import '../../users/providers/user_providers.dart';
 
 /// Redemption list screen for managing redemption requests
 class RedemptionListScreen extends ConsumerStatefulWidget {
@@ -107,6 +108,9 @@ class _RedemptionListScreenState extends ConsumerState<RedemptionListScreen> {
   Widget _buildRedemptionCard(BuildContext context, RedemptionModel redemption) {
     final theme = Theme.of(context);
     final timeAgo = timeago.format(redemption.createdAt, locale: 'ar');
+    
+    // Watch user data to get current points balance
+    final userAsync = ref.watch(userByIdStreamProvider(redemption.userId));
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -169,12 +173,54 @@ class _RedemptionListScreenState extends ConsumerState<RedemptionListScreen> {
                 Icon(Icons.stars, size: 16, color: Colors.amber),
                 const SizedBox(width: 8),
                 Text(
-                  'النقاط: ${redemption.points}', // Points
+                  'النقاط المطلوبة: ${redemption.points}', // Requested Points
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
+            ),
+
+            // User's Current Points Balance
+            const SizedBox(height: 8),
+            userAsync.when(
+              data: (user) {
+                if (user == null) return const SizedBox.shrink();
+                final currentPoints = user.totalPoints;
+                final hasEnoughPoints = currentPoints >= redemption.points;
+                return Row(
+                  children: [
+                    Icon(
+                      Icons.account_balance_wallet,
+                      size: 16,
+                      color: hasEnoughPoints ? Colors.green : Colors.red,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'رصيد المستخدم: $currentPoints نقطة', // User balance
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: hasEnoughPoints ? Colors.green : Colors.red,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                );
+              },
+              loading: () => Row(
+                children: [
+                  const SizedBox(
+                    width: 12,
+                    height: 12,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'جاري تحميل الرصيد...', // Loading balance
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ],
+              ),
+              error: (_, __) => const SizedBox.shrink(),
             ),
 
             // Handled Info (if approved or rejected)
