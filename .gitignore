@@ -1,37 +1,24 @@
-# Flutter
+@"
+# Flutter / Dart
 .dart_tool/
+.packages
+.melos_tool/
+pubspec.lock
+
+# Build outputs
 build/
-.android/
-.ios/
-linux/build/
-windows/build/
-macos/Pods/
+android/.gradle/
+android/build/
+android/app/build/
 ios/Pods/
+macos/Flutter/ephemeral/
+linux/flutter/ephemeral/
+windows/flutter/ephemeral/
 
-# IDE
-.vscode/
-.idea/
-*.iml
-
-# System
-.DS_Store
-Thumbs.db
-
-# Firebase (root)
-firebase-debug.log
-firebase-debug.*.log
-.firebaserc.bak
-serviceAccountKey.json
-# Node (root)
-node_modules/
-
-# Firebase Functions
+# Firebase Functions / Node
 functions/node_modules/
-functions/lib/
+functions/.env
 
-# Misc
-*.env
-.env*
-
-.flutter-plugins
-.flutter-plugins-dependencies
+# Secrets
+serviceAccountKey.json
+"@ | Out-File -Encoding UTF8 .gitignore
