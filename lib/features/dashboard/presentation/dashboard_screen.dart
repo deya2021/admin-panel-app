@@ -7,11 +7,10 @@ import '../widgets/stat_card_widget.dart';
 
 /// Dashboard screen showing admin panel overview
 class DashboardScreen extends ConsumerWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('لوحة التحكم'),
@@ -31,7 +30,7 @@ class DashboardScreen extends ConsumerWidget {
           ref.invalidate(dashboardStatsProvider);
           ref.invalidate(weeklyOrdersProvider);
         },
-        child: _DashboardContent(),
+        child: const _DashboardContent(),
       ),
     );
   }
@@ -39,6 +38,8 @@ class DashboardScreen extends ConsumerWidget {
 
 /// Separate widget to handle loading states properly
 class _DashboardContent extends ConsumerWidget {
+  const _DashboardContent();
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(dashboardStatsProvider);
@@ -63,11 +64,10 @@ class _DashboardContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Stats Cards - مع معالجة أفضل للحالات
-          // Stats Cards - مع معالجة أفضل للحالات
+          // Stats Cards section
           _buildStatsSection(statsAsync, ref),
 
-          // ← بطاقة النقاط
+          // Points summary card
           const SizedBox(height: 16),
           const PointsSummaryCard(),
           const SizedBox(height: 24),
@@ -144,15 +144,15 @@ class _DashboardContent extends ConsumerWidget {
         Text(
           'الطلبات خلال 7 أيام',
           style: Theme.of(ref.context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 16),
         weeklyOrdersAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, __) => Card(
+          error: (_, __) => const Card(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: Text('تعذر تحميل البيانات'),
             ),
           ),
@@ -161,19 +161,20 @@ class _DashboardContent extends ConsumerWidget {
       ],
     );
   }
-
 }
 
 class _WeeklyOrdersMiniChart extends StatelessWidget {
   final List<int> values;
-  const _WeeklyOrdersMiniChart({super.key, required this.values});
-  
+  const _WeeklyOrdersMiniChart({required this.values});
+
   @override
   Widget build(BuildContext context) {
-    final maxV = (values.isEmpty ? 1 : values.reduce((a, b) => a > b ? a : b)).clamp(1, 999999);
+    final maxV =
+        (values.isEmpty ? 1 : values.reduce((a, b) => a > b ? a : b))
+            .clamp(1, 999999);
     const labelHeight = 14.0;
     const gap = 6.0;
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16).copyWith(bottom: 6),
@@ -202,7 +203,7 @@ class _WeeklyOrdersMiniChart extends StatelessWidget {
                           ),
                           const SizedBox(height: gap),
                           Text(
-                            ['س','أ','ث','أر','خ','ج','س'][i],
+                            ['س', 'أ', 'ث', 'أر', 'خ', 'ج', 'س'][i],
                             style: const TextStyle(fontSize: 10, height: 1.0),
                           ),
                         ],
@@ -225,13 +226,13 @@ class _DashboardLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+    return const SingleChildScrollView(
+      padding: EdgeInsets.all(16),
       child: Column(
         children: [
-          const _StatsLoadingGrid(),
-          const SizedBox(height: 24),
-          const _ChartLoading(),
+          _StatsLoadingGrid(),
+          SizedBox(height: 24),
+          _ChartLoading(),
         ],
       ),
     );
@@ -298,10 +299,10 @@ class _ChartLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return const Card(
       elevation: 2,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         child: SizedBox(
           height: 300,
           child: Center(
@@ -309,7 +310,7 @@ class _ChartLoading extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 CircularProgressIndicator(),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Text('جاري تحميل بيانات الطلبات...'),
               ],
             ),

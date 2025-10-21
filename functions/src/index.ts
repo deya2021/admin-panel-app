@@ -402,6 +402,6 @@ export const recalculateStats = functions.https.onCall(async (data, context) => 
 // STATS UPDATE FUNCTIONS
 // ============================================================================
 
-export { statsOnUserWrite, statsOnProductWrite, statsOnOrderWrite } from './updateStats';
+export { statsOnUserWrite, statsOnProductWrite, statsOnOrderWrite, recalcWeekly } from './updateStats';
 
 

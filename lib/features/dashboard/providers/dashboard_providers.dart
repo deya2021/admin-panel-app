@@ -3,20 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/dashboard_stats.dart';
 import '../models/order_model.dart';
 
-/// Provider للاتصال بـ Firestore
+/// Provider for Firestore instance
 final _firestoreProvider = Provider<FirebaseFirestore>((ref) {
   return FirebaseFirestore.instance;
 });
 
-/// إصدار حقيقي مع fallback للبيانات الوهمية
+/// Real-time dashboard statistics provider with automatic refresh
+/// Streams data from stats/main document for instant updates
 final dashboardStatsProvider = StreamProvider<DashboardStats>((ref) {
   final firestore = ref.watch(_firestoreProvider);
 
   return firestore.collection('stats').doc('main').snapshots().map((snapshot) {
-    print('📊 Firestore Data: ${snapshot.data()}');
-
     if (!snapshot.exists) {
-      print('⚠️ No stats document found, using mock data');
       return _getMockStats();
     }
 
@@ -28,14 +26,16 @@ final dashboardStatsProvider = StreamProvider<DashboardStats>((ref) {
       pendingRedemptions: (data['pendingOrdersCount'] as num?)?.toInt() ?? 2,
     );
   }).handleError((error, stackTrace) {
-    print('🔥 Firestore Error: $error');
-    print('🔄 Falling back to mock data');
     return Stream.value(_getMockStats());
   });
 });
 
+/// Real-time weekly orders provider for dashboard chart
+/// Automatically updates when stats/main document changes
 final weeklyOrdersProvider = StreamProvider<List<int>>((ref) {
-  return FirebaseFirestore.instance
+  final firestore = ref.watch(_firestoreProvider);
+  
+  return firestore
       .collection('stats')
       .doc('main')
       .snapshots()
@@ -43,12 +43,18 @@ final weeklyOrdersProvider = StreamProvider<List<int>>((ref) {
         final data = doc.data();
         final list = (data?['weeklyOrders'] as List?)
             ?.map((e) => (e as num).toInt())
-            .toList() ?? List<int>.filled(7, 0);
+            .toList();
+        
+        // Ensure we always have exactly 7 integers
+        if (list == null || list.length != 7) {
+          return List<int>.filled(7, 0);
+        }
+        
         return list;
       });
 });
 
-// بيانات وهمية للطوارئ
+/// Fallback mock stats for error cases
 DashboardStats _getMockStats() {
   return DashboardStats(
     totalUsers: 15,
@@ -58,6 +64,7 @@ DashboardStats _getMockStats() {
   );
 }
 
+/// Mock orders for testing (unused in production)
 List<OrderModel> _getMockOrders() {
   final now = DateTime.now();
   return [
@@ -66,14 +73,14 @@ List<OrderModel> _getMockOrders() {
       userId: 'user1',
       total: 150.0,
       status: 'completed',
-      createdAt: now.subtract(Duration(days: 1)),
+      createdAt: now.subtract(const Duration(days: 1)),
     ),
     OrderModel(
       id: 'mock2',
       userId: 'user2',
       total: 200.0,
       status: 'completed',
-      createdAt: now.subtract(Duration(days: 2)),
+      createdAt: now.subtract(const Duration(days: 2)),
     ),
   ];
 }

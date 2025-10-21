@@ -11,7 +11,7 @@ class DashboardStats {
     required this.pendingRedemptions,
   });
 
-  // constructor بسيط بدون fromMap إذا كان يسبب مشاكل
+  /// Create empty stats instance
   factory DashboardStats.empty() {
     return DashboardStats(
       totalUsers: 0,
