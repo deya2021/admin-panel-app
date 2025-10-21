@@ -403,5 +403,7 @@ export const recalculateStats = functions.https.onCall(async (data, context) => 
 // ============================================================================
 
 export { statsOnUserWrite, statsOnProductWrite, statsOnOrderWrite, recalcWeekly } from './updateStats';
+export { createUser, updateUser, setRole } from './api/users';
+export { processRedemption } from './processRedemption';
 
 
