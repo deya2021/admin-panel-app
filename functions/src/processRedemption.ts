@@ -31,12 +31,14 @@ export const processRedemption = functions
   .region('us-central1')
   .https.onCall(async (data: ProcessRedemptionData, context) => {
     // Check authentication
-    if (!context.auth) {
+    if (!context.auth?.uid) {
       throw new functions.https.HttpsError(
         'unauthenticated',
         'المستخدم غير مصادق عليه' // User not authenticated
       );
     }
+
+    const authenticatedUid = context.auth.uid;
 
     // Check authorization (admin or manager only)
     const role = context.auth.token.role;
@@ -63,7 +65,7 @@ export const processRedemption = functions
       );
     }
 
-    console.log(`🔔 Processing redemption ${redemptionId} - Action: ${action} by ${context.auth.uid}`);
+    console.log(`🔔 Processing redemption ${redemptionId} - Action: ${action} by ${authenticatedUid}`);
 
     try {
       const redemptionRef = db.collection('redemptions').doc(redemptionId);
@@ -112,7 +114,7 @@ export const processRedemption = functions
           transaction.update(redemptionRef, {
             status: 'rejected',
             rejectedAt: admin.firestore.FieldValue.serverTimestamp(),
-            rejectedBy: context.auth.uid,
+            rejectedBy: authenticatedUid,
           });
 
           console.log(`✅ Redemption ${redemptionId} rejected successfully`);
@@ -161,7 +163,7 @@ export const processRedemption = functions
           transaction.update(redemptionRef, {
             status: 'approved',
             approvedAt: admin.firestore.FieldValue.serverTimestamp(),
-            approvedBy: context.auth.uid,
+            approvedBy: authenticatedUid,
           });
           return {
             success: true,
@@ -191,7 +193,7 @@ export const processRedemption = functions
         transaction.update(redemptionRef, {
           status: 'approved',
           approvedAt: admin.firestore.FieldValue.serverTimestamp(),
-          approvedBy: context.auth.uid,
+          approvedBy: authenticatedUid,
         });
 
         console.log(`✅ Redemption ${redemptionId} approved: ${points} points deducted from user ${userId}`);

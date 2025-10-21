@@ -1,5 +1,5 @@
 ﻿import { admin } from "../init";
-import { Request, Response } from "firebase-functions/v2/https";
+import type { Request, Response } from "express";
 
 export interface AuthenticatedRequest extends Request {
   auth?: {
