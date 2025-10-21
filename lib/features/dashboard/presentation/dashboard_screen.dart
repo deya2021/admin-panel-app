@@ -171,39 +171,47 @@ class _WeeklyOrdersMiniChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final maxV = (values.isEmpty ? 1 : values.reduce((a, b) => a > b ? a : b)).clamp(1, 999999);
+    const labelHeight = 14.0;
+    const gap = 6.0;
+    
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16).copyWith(bottom: 6),
         child: SizedBox(
           height: 120,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(7, (i) {
-              final h = (values[i] / maxV) * 100;
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Container(
-                        height: h,
-                        width: 12,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final barArea = constraints.maxHeight - labelHeight - gap;
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: List.generate(7, (i) {
+                  final h = (values[i] / maxV) * barArea;
+                  return Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Container(
+                            height: h,
+                            width: 12,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(6),
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(height: gap),
+                          Text(
+                            ['س','أ','ث','أر','خ','ج','س'][i],
+                            style: const TextStyle(fontSize: 10, height: 1.0),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        ['س','أ','ث','أر','خ','ج','س'][i],
-                        style: Theme.of(context).textTheme.labelSmall,
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                }),
               );
-            }),
+            },
           ),
         ),
       ),
