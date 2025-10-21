@@ -1,7 +1,7 @@
 ﻿import { admin } from "../init";
 import { onRequest } from "firebase-functions/v2/https";
 import { requireAdmin, AuthenticatedRequest } from "../middleware/auth";
-import { Response } from "firebase-functions/v2/https";
+import type { Response } from "express";
 
 const db = admin.firestore();
 const auth = admin.auth();
