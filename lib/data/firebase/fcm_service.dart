@@ -1,5 +1,4 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 
 import '../../core/utils/logger.dart';
 import '../../core/utils/constants.dart';

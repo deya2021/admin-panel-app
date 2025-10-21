@@ -126,7 +126,7 @@ class _RedemptionListScreenState extends ConsumerState<RedemptionListScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: redemption.statusColor.withOpacity(0.1),
+                    color: redemption.statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(

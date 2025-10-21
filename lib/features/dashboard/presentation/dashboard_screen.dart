@@ -1,10 +1,9 @@
-import 'package:admin_panel_app/core/widgets/error_view.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../../core/widgets/loading_indicator.dart';
-import 'package:admin_panel_app/features/points/widgets/points_summary_card.dart';
+import '../../../core/widgets/error_view.dart';
+import '../../points/widgets/points_summary_card.dart';
 import '../providers/dashboard_providers.dart';
 import '../widgets/stat_card_widget.dart';
 import '../models/order_model.dart';
@@ -15,7 +14,6 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -46,7 +44,6 @@ class DashboardScreen extends ConsumerWidget {
 class _DashboardContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final statsAsync = ref.watch(dashboardStatsProvider);
     final ordersAsync = ref.watch(recentOrdersProvider);
 
@@ -79,7 +76,7 @@ class _DashboardContent extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // Orders Chart - مع معالجة أفضل للحالات
-          _buildOrdersSection(ordersAsync, theme, ref),
+          _buildOrdersSection(ordersAsync, ref),
         ],
       ),
     );
@@ -143,13 +140,13 @@ class _DashboardContent extends ConsumerWidget {
   }
 
   Widget _buildOrdersSection(
-      AsyncValue ordersAsync, ThemeData theme, WidgetRef ref) {
+      AsyncValue ordersAsync, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'الطلبات خلال 7 أيام',
-          style: theme.textTheme.titleLarge?.copyWith(
+          style: Theme.of(ref.context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -269,7 +266,7 @@ class _DashboardContent extends ConsumerWidget {
                   dotData: FlDotData(show: true),
                   belowBarData: BarAreaData(
                     show: true,
-                    color: Colors.blue.withOpacity(0.2),
+                    color: Colors.blue.withValues(alpha: 0.2),
                   ),
                 ),
               ],

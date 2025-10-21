@@ -31,7 +31,6 @@ class _NotificationCenterScreenState
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final notificationsAsync = _showUnreadOnly
         ? ref.watch(unreadNotificationsStreamProvider)
         : ref.watch(userNotificationsStreamProvider);
@@ -290,10 +289,10 @@ class _NotificationCard extends ConsumerWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: notification.isRead ? null : color.withOpacity(0.05),
+      color: notification.isRead ? null : color.withValues(alpha: 0.05),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: color.withOpacity(0.2),
+          backgroundColor: color.withValues(alpha: 0.2),
           child: Icon(
             _getIconForType(notification.type),
             color: color,
@@ -318,7 +317,7 @@ class _NotificationCard extends ConsumerWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(

@@ -33,9 +33,10 @@ Future<void> _initFirebaseOnce() async {
   // ✅ جديد: تفعيل App Check (مهم جدًا لمنع PERMISSION_DENIED بسبب الإنفورس)
   // في التطوير: Debug Provider، وفي الإنتاج: Play Integrity
   await FirebaseAppCheck.instance.activate(
+    webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
     androidProvider:
         kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
-    appleProvider: AppleProvider.debug, // لا يضر لو لم تستخدم iOS الآن
+    appleProvider: AppleProvider.debug,
   );
 
   // (اختياري) تهيئة timeago بالعربية
