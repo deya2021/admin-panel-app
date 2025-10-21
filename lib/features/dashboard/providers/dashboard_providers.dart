@@ -22,10 +22,10 @@ final dashboardStatsProvider = StreamProvider<DashboardStats>((ref) {
 
     final data = snapshot.data()!;
     return DashboardStats(
-      totalUsers: (data['totalUsers'] as num?)?.toInt() ?? 15,
-      totalProducts: (data['totalProducts'] as num?)?.toInt() ?? 28,
-      lowStockProducts: (data['lowStockProducts'] as num?)?.toInt() ?? 3,
-      pendingRedemptions: (data['pendingRedemptions'] as num?)?.toInt() ?? 2,
+      totalUsers: (data['usersCount'] as num?)?.toInt() ?? 15,
+      totalProducts: (data['productsCount'] as num?)?.toInt() ?? 28,
+      lowStockProducts: (data['lowStockCount'] as num?)?.toInt() ?? 3,
+      pendingRedemptions: (data['pendingOrdersCount'] as num?)?.toInt() ?? 2,
     );
   }).handleError((error, stackTrace) {
     print('🔥 Firestore Error: $error');
@@ -34,41 +34,18 @@ final dashboardStatsProvider = StreamProvider<DashboardStats>((ref) {
   });
 });
 
-/// إصدار حقيقي للطلبات مع fallback
-final recentOrdersProvider = StreamProvider<List<OrderModel>>((ref) {
-  final firestore = ref.watch(_firestoreProvider);
-  final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
-
-  return firestore
-      .collection('orders')
-      .where('createdAt',
-          isGreaterThanOrEqualTo: Timestamp.fromDate(sevenDaysAgo))
-      .orderBy('createdAt', descending: true)
+final weeklyOrdersProvider = StreamProvider<List<int>>((ref) {
+  return FirebaseFirestore.instance
+      .collection('stats')
+      .doc('main')
       .snapshots()
-      .map((snapshot) {
-    print('📦 Orders found: ${snapshot.docs.length}');
-
-    if (snapshot.docs.isEmpty) {
-      print('⚠️ No orders found, using mock data');
-      return _getMockOrders();
-    }
-
-    return snapshot.docs.map((doc) {
-      final data = doc.data();
-      return OrderModel(
-        id: doc.id,
-        userId: data['userId'] as String? ?? 'unknown',
-        total: (data['total'] as num?)?.toDouble() ?? 0.0,
-        status: data['status'] as String? ?? 'pending',
-        createdAt:
-            (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      );
-    }).toList();
-  }).handleError((error, stackTrace) {
-    print('🔥 Orders Error: $error');
-    print('🔄 Falling back to mock orders');
-    return Stream.value(_getMockOrders());
-  });
+      .map((doc) {
+        final data = doc.data();
+        final list = (data?['weeklyOrders'] as List?)
+            ?.map((e) => (e as num).toInt())
+            .toList() ?? List<int>.filled(7, 0);
+        return list;
+      });
 });
 
 // بيانات وهمية للطوارئ

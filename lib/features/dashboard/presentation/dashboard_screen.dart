@@ -1,12 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fl_chart/fl_chart.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../points/widgets/points_summary_card.dart';
 import '../providers/dashboard_providers.dart';
 import '../widgets/stat_card_widget.dart';
-import '../models/order_model.dart';
 
 /// Dashboard screen showing admin panel overview
 class DashboardScreen extends ConsumerWidget {
@@ -24,7 +21,7 @@ class DashboardScreen extends ConsumerWidget {
             tooltip: 'تحديث',
             onPressed: () {
               ref.invalidate(dashboardStatsProvider);
-              ref.invalidate(recentOrdersProvider);
+              ref.invalidate(weeklyOrdersProvider);
             },
           ),
         ],
@@ -32,7 +29,7 @@ class DashboardScreen extends ConsumerWidget {
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(dashboardStatsProvider);
-          ref.invalidate(recentOrdersProvider);
+          ref.invalidate(weeklyOrdersProvider);
         },
         child: _DashboardContent(),
       ),
@@ -45,10 +42,10 @@ class _DashboardContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(dashboardStatsProvider);
-    final ordersAsync = ref.watch(recentOrdersProvider);
+    final weeklyOrdersAsync = ref.watch(weeklyOrdersProvider);
 
-    // Show loading for both stats and orders initially
-    if (statsAsync.isLoading && ordersAsync.isLoading) {
+    // Show loading for both stats and weekly orders initially
+    if (statsAsync.isLoading && weeklyOrdersAsync.isLoading) {
       return const _DashboardLoading();
     }
 
@@ -75,8 +72,8 @@ class _DashboardContent extends ConsumerWidget {
           const PointsSummaryCard(),
           const SizedBox(height: 24),
 
-          // Orders Chart - مع معالجة أفضل للحالات
-          _buildOrdersSection(ordersAsync, ref),
+          // Weekly Orders Chart
+          _buildWeeklyOrdersSection(weeklyOrdersAsync, ref),
         ],
       ),
     );
@@ -139,8 +136,8 @@ class _DashboardContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildOrdersSection(
-      AsyncValue ordersAsync, WidgetRef ref) {
+  Widget _buildWeeklyOrdersSection(
+      AsyncValue<List<int>> weeklyOrdersAsync, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -151,127 +148,62 @@ class _DashboardContent extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 16),
-        ordersAsync.when(
-          data: (orders) => _buildOrdersChart(ref.context, orders),
-          loading: () => const _ChartLoading(),
-          error: (error, stack) => ErrorView(
-            error: 'خطأ في تحميل الطلبات: $error',
-            onRetry: () => ref.invalidate(recentOrdersProvider),
+        weeklyOrdersAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, __) => Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text('تعذر تحميل البيانات'),
+            ),
           ),
+          data: (list) => _WeeklyOrdersMiniChart(values: list),
         ),
       ],
     );
   }
 
-  Widget _buildOrdersChart(BuildContext context, List<OrderModel> orders) {
-    // ... (ابقى نفس محتوى الدالة الأصلي)
-    if (orders.isEmpty) {
-      return const SizedBox(
-        height: 300,
-        child: Center(
-          child: Text('لا توجد طلبات في آخر 7 أيام'),
-        ),
-      );
-    }
+}
 
-    // Group orders by date with safe conversion
-    final Map<DateTime, double> dailyTotals = {};
-    for (var order in orders) {
-      try {
-        DateTime orderDate;
-        if (order.createdAt is Timestamp) {
-          orderDate = (order.createdAt as Timestamp).toDate();
-        } else if (order.createdAt is DateTime) {
-          orderDate = order.createdAt;
-        } else {
-          orderDate = DateTime.now();
-        }
-
-        final date = DateTime(orderDate.year, orderDate.month, orderDate.day);
-        double orderTotal;
-        if (order.total is double) {
-          orderTotal = order.total;
-        } else if (order.total is int) {
-          orderTotal = (order.total as int).toDouble();
-        } else {
-          orderTotal = 0.0;
-        }
-
-        dailyTotals[date] = (dailyTotals[date] ?? 0) + orderTotal;
-      } catch (e) {
-        print('⚠️ خطأ في معالجة طلب: $e');
-        continue;
-      }
-    }
-
-    // Create data points for last 7 days
-    final now = DateTime.now();
-    final List<FlSpot> spots = [];
-    for (int i = 6; i >= 0; i--) {
-      final date =
-          DateTime(now.year, now.month, now.day).subtract(Duration(days: i));
-      final total = dailyTotals[date] ?? 0;
-      spots.add(FlSpot(6 - i.toDouble(), total));
-    }
-
+class _WeeklyOrdersMiniChart extends StatelessWidget {
+  final List<int> values;
+  const _WeeklyOrdersMiniChart({super.key, required this.values});
+  
+  @override
+  Widget build(BuildContext context) {
+    final maxV = (values.isEmpty ? 1 : values.reduce((a, b) => a > b ? a : b)).clamp(1, 999999);
     return Card(
-      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: SizedBox(
-          height: 300,
-          child: LineChart(
-            LineChartData(
-              gridData: FlGridData(show: true),
-              titlesData: FlTitlesData(
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 40,
-                    getTitlesWidget: (value, meta) {
-                      return Text(
-                        value.toInt().toString(),
-                        style: const TextStyle(fontSize: 10),
-                      );
-                    },
+          height: 120,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(7, (i) {
+              final h = (values[i] / maxV) * 100;
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Container(
+                        height: h,
+                        width: 12,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        ['س','أ','ث','أر','خ','ج','س'][i],
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                    ],
                   ),
                 ),
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 30,
-                    getTitlesWidget: (value, meta) {
-                      final date = DateTime.now().subtract(
-                        Duration(days: 6 - value.toInt()),
-                      );
-                      return Text(
-                        '${date.day}/${date.month}',
-                        style: const TextStyle(fontSize: 10),
-                      );
-                    },
-                  ),
-                ),
-                topTitles:
-                    AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles:
-                    AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              ),
-              borderData: FlBorderData(show: true),
-              lineBarsData: [
-                LineChartBarData(
-                  spots: spots,
-                  isCurved: true,
-                  color: Colors.blue,
-                  barWidth: 3,
-                  dotData: FlDotData(show: true),
-                  belowBarData: BarAreaData(
-                    show: true,
-                    color: Colors.blue.withValues(alpha: 0.2),
-                  ),
-                ),
-              ],
-              minY: 0,
-            ),
+              );
+            }),
           ),
         ),
       ),
